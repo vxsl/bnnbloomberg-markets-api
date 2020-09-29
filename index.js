@@ -24,11 +24,17 @@ const options = {
 const url = 'https://data.bnn.ca/dispenser/hydra/dapi/stockList?s=SPTSX%3AIND%2CSPTSXM%3AIND%2CSPTSXS%3AIND';
 
 
-async function getGainers() {
+const gainers = async () => {
 
-	//var x = await fetch('https://data.bnn.ca/dispenser/hydra/dapi/stockList?s=SPTSX%3AIND%2CSPTSXM%3AIND%2CSPTSXS%3AIND').then(res => res.json()).then(json => json.data)
-	var x = await fetch(url, options).then(res => res.text()).then(text => console.log(text))
-	return x;
+	return fetch(url, options).then(res => res.text()).then(text => JSON.parse(text)).then(obj => {
+			return obj
+		})
 }
 
-getGainers()
+const main = async () => {
+
+	var poll = await gainers()
+	console.log(poll.data.stocks)
+}
+
+main()
