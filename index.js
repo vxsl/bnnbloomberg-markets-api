@@ -31,5 +31,4 @@ async function getGainers() {
 	return x;
 }
 
-
-console.log(getGainers())
+getGainers()
