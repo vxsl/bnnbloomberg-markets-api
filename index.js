@@ -25,16 +25,12 @@ const url = 'https://data.bnn.ca/dispenser/hydra/dapi/stockList?s=SPTSX%3AIND%2C
 
 
 const gainers = async () => {
-
 	return fetch(url, options).then(res => res.text()).then(text => JSON.parse(text)).then(obj => {
-			return obj
-		})
+				return obj
+			})
 }
 
-const main = async () => {
+module.exports = {
 
-	var poll = await gainers()
-	console.log(poll.data.stocks)
+	gainers
 }
-
-main()
