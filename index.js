@@ -1,5 +1,6 @@
 const fetch = require('node-fetch')
 const Headers = fetch.Headers;
+const { PollLogger } = require('./PollLogger.js')
 
 var customRequestHeaders = new Headers({
 	"Host": "data.bnn.ca",
@@ -22,70 +23,54 @@ const options = {
 	headers: customRequestHeaders
 }
 
-const resources = [
-	'stockList?s=SPTSX%3AIND%2CSPTSXM%3AIND%2CSPTSXS%3AIND',
-	'stockChart?s=AC:CT',
-	'quote/summary?s=AC%3ACT'
-]
-
 const baseURI = 'https://data.bnn.ca/dispenser/hydra/dapi/'
 var uri
+var log
+var logger
 
-const select = (resourceIndex) => {
+const initialize = (resourceIndex, doLogging=false) => {
+	
+	let resources = [
+		'stockList?s=SPTSX%3AIND%2CSPTSXM%3AIND%2CSPTSXS%3AIND',
+		'stockChart?s=AC:CT',
+		'quote/summary?s=AC%3ACT'
+	]
+
 	uri = baseURI + resources[resourceIndex]
 	console.log("Selected URI is " + uri)
+	log = doLogging
 }
 
 const poll = async () => {
-	var responseHeaders
-	
-	// TODO: encapsulate logging
-			// let requestTime = (new Date).getTime()	
-			// let requestedTimestamp = Date.now() + 4500	
 
+	if (log) { logger = new PollLogger() }
+
+	var responseHeaders
+
+	log? logger.reqInit() : null
+
+	// adjust URI to increase likelihood of getting a correct response
 	spoofParams()
+
 	// Make API request
 	let r = await fetch(uri, options).then(function(res) {
 		responseHeaders = res.headers;
 		return res.json()
 	})
 	
-			// let responseTime = responseHeaders.get('date')	
-			// let responseTimestamp = Date.parse(responseTime).toString()	
-			// let responseGeneratedTimestamp = Date.parse(r.generatedTimestamp)
+	log? logger.respInit(r, responseHeaders) : null
 
 	// ignore erroneous results from the API, which are frequent
-	if (Math.abs(Date.parse(r.generatedTimestamp) - Date.parse(responseHeaders.get('date')).toString()) > 2000) return 0;
+	if (Math.abs(Date.parse(r.generatedTimestamp) - Date.parse(responseHeaders.get('date')).toString()) > 2000) return 1;
 	
-			//console.log(responseHeaders.get('x-vcache'))
-			/*if (responseHeaders.get('Set-Cookie') != null) {
-				console.log("New cookie")
-			}*/
-	
-	/*if (responseHeaders.get('Set-Cookie') != null) {
-		
-		//customRequestHeaders["Set-Cookie"] = "abc" + "; Expires=" + (new Date((new Date).getTime() + 5000)).toString()
-		customRequestHeaders["Set-Cookie"] = "TS01ed3f75="+ "; " + "Expires=" + (new Date((new Date).getTime())).toString() + "; Path=/; Secure"
-		//customRequestHeaders["Set-Cookie"] = "TS01ed3f75="+ "; Path=/; Secure"
-	}
-	else {
-		//customRequestHeaders["Set-Cookie"] = null
-		//customRequestHeaders["Set-Cookie"] = "TS01ed3f75="+ "; Path=/; Secure"
-	}*/
-	
-
-			//console.log("Received server response at " + responseTime)
-			// //console.log("difference = " + (responseTimestamp - requestTime))
-			//console.log("requested stamp - received = " + (responseGeneratedTimestamp - responseTimestamp))
-
+	// print timestamp
 	console.log("[ " + r.generatedTimestamp + " ]")
 	if (r.statusCode != '200') {
 		console.log(r.statusCode)
-	}
-			//console.log(r)
-	return
-}
+	}	
 
+	return 0
+}
 
 // Appends random parameter/value pair to end of URI in order to urge the data.bnn.ca to generate a new response.
 const spoofParams = () => {
@@ -101,14 +86,23 @@ const spoofParams = () => {
 	uri += "&" + fakeParam + "=" + randomLetter()
 }
 
-const parseResponse = (res) => {
+// not implemented but keeping in case it's useful later
+const destroyCookie = () => {
 
-	console.log(res.headers)
-	return res.json()
+	/*if (responseHeaders.get('Set-Cookie') != null) {
+		
+		//customRequestHeaders["Set-Cookie"] = "abc" + "; Expires=" + (new Date((new Date).getTime() + 5000)).toString()
+		customRequestHeaders["Set-Cookie"] = "TS01ed3f75="+ "; " + "Expires=" + (new Date((new Date).getTime())).toString() + "; Path=/; Secure"
+		//customRequestHeaders["Set-Cookie"] = "TS01ed3f75="+ "; Path=/; Secure"
+	}
+	else {
+		//customRequestHeaders["Set-Cookie"] = null
+		//customRequestHeaders["Set-Cookie"] = "TS01ed3f75="+ "; Path=/; Secure"
+	}*/
 }
 
 module.exports = {
 
 	poll,
-	select
+	initialize
 }
