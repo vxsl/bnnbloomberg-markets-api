@@ -61,15 +61,11 @@ const poll = async () => {
 	log? logger.respInit(r, responseHeaders) : null
 
 	// ignore erroneous results from the API, which are frequent
-	if (Math.abs(Date.parse(r.generatedTimestamp) - Date.parse(responseHeaders.get('date')).toString()) > 2000) return 1;
+	if (Math.abs(Date.parse(r.generatedTimestamp) - Date.parse(responseHeaders.get('date')).toString()) > 2000) return 1
 	
-	// print timestamp
-	console.log("[ " + r.generatedTimestamp + " ]")
-	if (r.statusCode != '200') {
-		console.log(r.statusCode)
-	}	
+	log? logger.fin(r) : null
 
-	return 0
+	return r
 }
 
 // Appends random parameter/value pair to end of URI in order to urge the data.bnn.ca to generate a new response.

@@ -32,6 +32,13 @@ class PollLogger {
 
         //console.log(r)
     }
+
+    fin = async (r) => {
+        console.log("[ " + r.generatedTimestamp + " ]")
+        if (r.statusCode != '200') {
+            console.log(r.statusCode)
+        }	
+    }
 }
 
 module.exports = {
