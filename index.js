@@ -40,7 +40,7 @@ const initialize = async (resourceIndex, doLogging=false) => {
 	]
 
 	baseURI += resources[resourceIndex]
-	console.log("Selected URI is " + 5uri)
+	console.log("Selected URI is " + baseURI)
 	log = doLogging	
 
 	while (true) {
