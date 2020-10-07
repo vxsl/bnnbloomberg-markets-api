@@ -23,7 +23,7 @@ const options = {
 	headers: customRequestHeaders
 }
 
-const baseURI = 'https://data.bnn.ca/dispenser/hydra/dapi/'
+var baseURI = 'https://data.bnn.ca/dispenser/hydra/dapi/'
 var uri
 var log
 var logger
@@ -39,8 +39,8 @@ const initialize = async (resourceIndex, doLogging=false) => {
 		'quote/summary?s=AC%3ACT'
 	]
 
-	uri = baseURI + resources[resourceIndex]
-	console.log("Selected URI is " + uri)
+	baseURI += resources[resourceIndex]
+	console.log("Selected URI is " + 5uri)
 	log = doLogging	
 
 	while (true) {
@@ -86,7 +86,7 @@ const poll = async (init=false) => {
 
 // Appends random parameter/value pair to end of URI in order to urge the data.bnn.ca to generate a new response.
 const spoofParams = () => {
-	
+	uri = baseURI
 	const randomLetter = () => {
 		return String.fromCharCode(97+Math.floor(Math.random() * 26))
 	}
