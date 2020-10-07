@@ -28,7 +28,10 @@ var uri
 var log
 var logger
 
-const initialize = (resourceIndex, doLogging=false) => {
+var freshestTimestamp
+
+
+const initialize = async (resourceIndex, doLogging=false) => {
 	
 	let resources = [
 		'stockList?s=SPTSX%3AIND%2CSPTSXM%3AIND%2CSPTSXS%3AIND',
@@ -38,10 +41,18 @@ const initialize = (resourceIndex, doLogging=false) => {
 
 	uri = baseURI + resources[resourceIndex]
 	console.log("Selected URI is " + uri)
-	log = doLogging
+	log = doLogging	
+
+	while (true) {
+		let res = await poll(true)
+		if (Math.abs(Date.parse(res[0].generatedTimestamp) - Date.parse(res[1].get('date')).toString()) < 4000) {
+			freshestTimestamp = Date.parse(res[0].generatedTimestamp)
+			break
+		}
+	}
 }
 
-const poll = async () => {
+const poll = async (init=false) => {
 
 	if (log) { logger = new PollLogger() }
 
@@ -57,15 +68,20 @@ const poll = async () => {
 		responseHeaders = res.headers;
 		return res.json()
 	})
-	
+
 	log? logger.respInit(r, responseHeaders) : null
 
-	// ignore erroneous results from the API, which are frequent
-	if (Math.abs(Date.parse(r.generatedTimestamp) - Date.parse(responseHeaders.get('date')).toString()) > 2000) return 1
-	
+	//console.log(Math.abs(Date.parse(r.generatedTimestamp) - Date.parse(responseHeaders.get('date')).toString()))
+	//console.log(Math.abs(Date.parse(r.generatedTimestamp) - (new Date()).getTime()))
+
+	let newTimestamp = Date.parse(r.generatedTimestamp)
+	if (newTimestamp <= freshestTimestamp) return 1	// ignore erroneous results from the API, which are frequent
+	else freshestTimestamp = newTimestamp
+
 	log? logger.fin(r) : null
 
-	return r
+	if (init) return [r, responseHeaders]
+	else return r
 }
 
 // Appends random parameter/value pair to end of URI in order to urge the data.bnn.ca to generate a new response.
@@ -80,6 +96,8 @@ const spoofParams = () => {
 		else { fakeParam = randomLetter() }
 	}
 	uri += "&" + fakeParam + "=" + randomLetter()
+
+	uri += "&startTstamp=" + Date.now()
 }
 
 // not implemented but keeping in case it's useful later
