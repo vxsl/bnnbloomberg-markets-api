@@ -96,8 +96,6 @@ const spoofParams = () => {
 		else { fakeParam = randomLetter() }
 	}
 	uri += "&" + fakeParam + "=" + randomLetter()
-
-	uri += "&startTstamp=" + Date.now()
 }
 
 // not implemented but keeping in case it's useful later
