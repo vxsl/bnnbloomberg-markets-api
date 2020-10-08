@@ -42,10 +42,10 @@ const initialize = async (resourceIndex, doLogging=false) => {
 	baseURI += resources[resourceIndex]
 	console.log("Selected URI is " + baseURI)
 	log = doLogging	
-
+	
 	while (true) {
 		let res = await poll(true)
-		if (res !== 1 && Math.abs(Date.parse(res[0].generatedTimestamp) - Date.parse(res[1].get('date')).toString()) < 4000) {
+		if (res !== 1 && Math.abs(Date.parse(res[0].generatedTimestamp) - Date.parse(res[1].get('date')).toString()) < 9000) {
 			freshestTimestamp = Date.parse(res[0].generatedTimestamp)
 			break
 		}
@@ -62,7 +62,6 @@ const poll = async (init=false) => {
 
 	// adjust URI to increase likelihood of getting a correct response
 	spoofParams()
-
 	// Make API request
 	let r = await fetch(uri, options).then(function(res) {
 		responseHeaders = res.headers;
