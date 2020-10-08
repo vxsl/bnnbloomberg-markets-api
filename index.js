@@ -28,7 +28,7 @@ var uri
 var log
 var logger
 
-var freshestTimestamp
+var freshestTimestamp = 0
 
 
 const initialize = async (resourceIndex, doLogging=false) => {
@@ -45,7 +45,7 @@ const initialize = async (resourceIndex, doLogging=false) => {
 
 	while (true) {
 		let res = await poll(true)
-		if (Math.abs(Date.parse(res[0].generatedTimestamp) - Date.parse(res[1].get('date')).toString()) < 4000) {
+		if (res !== 1 && Math.abs(Date.parse(res[0].generatedTimestamp) - Date.parse(res[1].get('date')).toString()) < 4000) {
 			freshestTimestamp = Date.parse(res[0].generatedTimestamp)
 			break
 		}
