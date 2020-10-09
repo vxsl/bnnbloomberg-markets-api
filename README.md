@@ -13,7 +13,7 @@ git clone https://github.com/vxsl/bnnbloomberg-markets-scraper.git
 cd bnnbloomberg-markets-scraper; npm i; cd ..
 ```
 
-```jav
+```javascript
 const scraper = require("./bnnbloomberg-markets-scraper")
 
 const getNewQuote = async () => {
