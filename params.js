@@ -4,9 +4,9 @@ const Headers = fetch.Headers;
 const baseURI = 'https://data.bnn.ca/dispenser/hydra/dapi/'
 
 const types = {    
-    "stockList":"stockList?s=",
-    "stock":"quote/summary?s=",
-    "stockChart":"stockChart?s=",
+    "stockList":"stockList?s=",     // list of current quotes for individual stocks
+    "stockChart":"stockChart?s=",   // current quote for one individual stock    
+    "stock":"quote/summary?s="      // historical data for one individual stock
 }
 
 const resources = {

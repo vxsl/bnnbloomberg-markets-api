@@ -28,7 +28,7 @@ const constructURI = async (reqResourceFriendly) => {
 			}
 			else {
 				console.log("\nSelected option is an individual quote for \'" + reqResourceFriendly + "\'.")
-				result = types.stock + reqResourceFriendly	
+				result = types.stockChart + reqResourceFriendly	
 				await fetch(baseURI + result, fetchOptions).then(res => res.json()).then(json => {
 					if (json.statusCode != 200) {						
 						throw "\nSorry, that query was rejected by the API with error code " + json.statusCode + "."
