@@ -1,7 +1,5 @@
-class PollLogger {
-    constructor() {
-        this.cat ="dog"
-    }
+class QuoteLogger {
+    
     reqInit = async () => {
         this.requestTime = (new Date).getTime()	
         this.reqLog()
@@ -29,8 +27,6 @@ class PollLogger {
         console.log("Difference between generated stamp and actual = " + (this.responseGeneratedTimestamp - this.responseTimestamp))
 
         if (Math.abs(Date.parse(r.generatedTimestamp) - Date.parse(responseHeaders.get('date')).toString()) > 2000) console.log("\nFAIL\n");
-
-        //console.log(r)
     }
 
     fin = async (r) => {
@@ -43,5 +39,5 @@ class PollLogger {
 
 module.exports = {
 
-    PollLogger
+    QuoteLogger
 }

@@ -1,50 +1,62 @@
-const fetch = require('node-fetch')
-const Headers = fetch.Headers;
-const { PollLogger } = require('./PollLogger.js')
+const { QuoteLogger } = require('./QuoteLogger.js')
+const { fetch, fetchOptions, baseURI, resources, types } = require('./params.js')
 
-var customRequestHeaders = new Headers({
-	"Host": "data.bnn.ca",
-	"Connection": "keep-alive",
-	"Pragma": "no-cache",
-	"Cache-Control": "no-cache",
-	"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36",
-	"Accept": "*/*",
-	"Origin": "https://www.bnnbloomberg.ca",
-	"Sec-Fetch-Site": "cross-site",
-	"Sec-Fetch-Mode": "cors",
-	"Sec-Fetch-Dest": "empty",
-	"Referer": "https://www.bnnbloomberg.ca/",
-	"Accept-Encoding": "gzip, deflate, br",
-	"Accept-Language": "en-US,en;q=0.9,fr-CA;q=0.8,fr-FR;q=0.7,fr;q=0.6"
-})
-const options = {
-
-	method: 'GET', 
-	headers: customRequestHeaders
-}
-
-var baseURI = 'https://data.bnn.ca/dispenser/hydra/dapi/'
 var uri
-var log
-var logger
-
+var doLogging, logger
 var freshestTimestamp = 0
 
+const constructURI = async (reqResourceFriendly) => {
 
-const initialize = async (resourceIndex, doLogging=false) => {
-	
-	let resources = [
-		'stockList?s=SPTSX%3AIND%2CSPTSXM%3AIND%2CSPTSXS%3AIND',
-		'stockChart?s=AC:CT',
-		'quote/summary?s=AC%3ACT'
-	]
+	let result
+	switch (reqResourceFriendly) {
+		case "us":
+			console.log("\nSelected option is a summary of the US market (NASDAQ, S&P500, and DOW 30).")
+			result = types.stockList
+			result += resources.us.nasdaq + "," + resources.us.sp500 + ","
+			for (let c in resources.us.dow30) {
+				result += c
+			}
+			console.log(result)
+			break
+		case "ca":
+			console.log("\nSelected option is a summary of the Canadian market (TSX Composite Index, Midcap Index and Smallcap Index).")
+			result = types.stockList + resources.ca.composite + "," + resources.ca.midcap + "," + resources.ca.smallcap
+			break
+		default:
+			if (new RegExp(`$[a-z, A-Z]+\:[a-z, A-Z]+^`).test(reqResourceFriendly)) {	
+				throw "\nSorry, " + reqResourceFriendly + " is not a valid resource name."
+			}
+			else {
+				console.log("\nSelected option is an individual quote for \'" + reqResourceFriendly + "\'.")
+				result = types.stock + reqResourceFriendly	
+				await fetch(baseURI + result, fetchOptions).then(res => res.json()).then(json => {
+					if (json.statusCode != 200) {						
+						throw "\nSorry, that query was rejected by the API with error code " + json.statusCode + "."
+					}
+				})
+			}
+	}
+	return result
+}
 
-	baseURI += resources[resourceIndex]
-	console.log("Selected URI is " + baseURI)
-	log = doLogging	
+const initialize = async (reqResourceFriendly="ca", log=false) => {
 	
+	try {
+		uri = baseURI + await constructURI(reqResourceFriendly)
+	}
+	catch (error) {
+		console.log(error)
+		return 1
+	}
+	
+	console.log("The corresponding URI is " + uri + ".\n")	
+
+	doLogging = log
+	log? logger = new QuoteLogger() : null
+
+	// get initial quote
 	while (true) {
-		let res = await poll(true)
+		let res = await quote(true)
 		if (res !== 1 && Math.abs(Date.parse(res[0].generatedTimestamp) - Date.parse(res[1].get('date')).toString()) < 9000) {
 			freshestTimestamp = Date.parse(res[0].generatedTimestamp)
 			break
@@ -52,40 +64,37 @@ const initialize = async (resourceIndex, doLogging=false) => {
 	}
 }
 
-const poll = async (init=false) => {
+const quote = async (init=false) => {
+	
+	while (true) {
+	
+		doLogging? logger.reqInit() : null
 
-	if (log) { logger = new PollLogger() }
+		let responseHeaders
 
-	var responseHeaders
+		// Make API request	
+		// use spoofParams() to give fake parameters to URI, increasing likelihood of getting a correct response
+		let r = await fetch(spoofParams(uri), fetchOptions).then(function(res) {
+			responseHeaders = res.headers;
+			return res.json()
+		})
 
-	log? logger.reqInit() : null
+		doLogging? logger.respInit(r, responseHeaders) : null
 
-	// adjust URI to increase likelihood of getting a correct response
-	spoofParams()
-	// Make API request
-	let r = await fetch(uri, options).then(function(res) {
-		responseHeaders = res.headers;
-		return res.json()
-	})
+		let newTimestamp = Date.parse(r.generatedTimestamp)
+		if (newTimestamp <= freshestTimestamp) continue	// ignore erroneous results from the API, which are frequent
+		else freshestTimestamp = newTimestamp
 
-	log? logger.respInit(r, responseHeaders) : null
+		doLogging? logger.fin(r) : null
 
-	//console.log(Math.abs(Date.parse(r.generatedTimestamp) - Date.parse(responseHeaders.get('date')).toString()))
-	//console.log(Math.abs(Date.parse(r.generatedTimestamp) - (new Date()).getTime()))
-
-	let newTimestamp = Date.parse(r.generatedTimestamp)
-	if (newTimestamp <= freshestTimestamp) return 1	// ignore erroneous results from the API, which are frequent
-	else freshestTimestamp = newTimestamp
-
-	log? logger.fin(r) : null
-
-	if (init) return [r, responseHeaders]
-	else return r
+		if (init) return [r, responseHeaders]
+		else return r
+	}
 }
 
 // Appends random parameter/value pair to end of URI in order to urge the data.bnn.ca to generate a new response.
 const spoofParams = () => {
-	uri = baseURI
+	spoofed = uri
 	const randomLetter = () => {
 		return String.fromCharCode(97+Math.floor(Math.random() * 26))
 	}
@@ -94,7 +103,8 @@ const spoofParams = () => {
 		if (fakeParam != 's') break
 		else { fakeParam = randomLetter() }
 	}
-	uri += "&" + fakeParam + "=" + randomLetter()
+	spoofed += "&" + fakeParam + "=" + randomLetter()
+	return spoofed
 }
 
 // not implemented but keeping in case it's useful later
@@ -114,6 +124,6 @@ const destroyCookie = () => {
 
 module.exports = {
 
-	poll,
+	quote,
 	initialize
 }
