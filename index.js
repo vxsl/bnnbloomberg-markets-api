@@ -1,10 +1,6 @@
 const { QuoteLogger } = require('./QuoteLogger.js')
 const { fetch, fetchOptions, baseURI, resources, types } = require('./params.js')
 
-var uri
-var doLogging, logger
-var freshestTimestamp = 0
-
 const constructURI = async (reqResourceFriendly) => {
 
 	let result
@@ -39,62 +35,8 @@ const constructURI = async (reqResourceFriendly) => {
 	return result
 }
 
-const initialize = async (reqResourceFriendly="ca", log=false) => {
-	
-	try {
-		uri = baseURI + await constructURI(reqResourceFriendly)
-	}
-	catch (error) {
-		console.log(error)
-		return 1
-	}
-	
-	console.log("The corresponding URI is " + uri + ".\n")	
-
-	doLogging = log
-	log? logger = new QuoteLogger() : null
-
-	// get initial quote
-	while (true) {
-		let res = await quote(true)
-		if (res !== 1 && Math.abs(Date.parse(res[0].generatedTimestamp) - Date.parse(res[1].get('date')).toString()) < 9000) {
-			freshestTimestamp = Date.parse(res[0].generatedTimestamp)
-			break
-		}
-	}
-}
-
-const quote = async (init=false) => {
-	
-	while (true) {
-	
-		doLogging? logger.reqInit() : null
-
-		let responseHeaders
-
-		// Make API request	
-		// use spoofParams() to give fake parameters to URI, increasing likelihood of getting a correct response
-		let r = await fetch(spoofParams(uri), fetchOptions).then(function(res) {
-			responseHeaders = res.headers;
-			return res.json()
-		})
-
-		doLogging? logger.respInit(r, responseHeaders) : null
-
-		let newTimestamp = Date.parse(r.generatedTimestamp)
-		if (newTimestamp <= freshestTimestamp) continue	// ignore erroneous results from the API, which are frequent
-		else freshestTimestamp = newTimestamp
-
-		doLogging? logger.fin(r) : null
-
-		if (init) return [r, responseHeaders]
-		else return r
-	}
-}
-
 // Appends random parameter/value pair to end of URI in order to urge the data.bnn.ca to generate a new response.
-const spoofParams = () => {
-	spoofed = uri
+const spoofParams = (uri) => {
 	const randomLetter = () => {
 		return String.fromCharCode(97+Math.floor(Math.random() * 26))
 	}
@@ -103,27 +45,71 @@ const spoofParams = () => {
 		if (fakeParam != 's') break
 		else { fakeParam = randomLetter() }
 	}
-	spoofed += "&" + fakeParam + "=" + randomLetter()
+	spoofed = uri += "&" + fakeParam + "=" + randomLetter()
 	return spoofed
 }
 
-// not implemented but keeping in case it's useful later
-const destroyCookie = () => {
+class QuoteHarvester {		
 
-	/*if (responseHeaders.get('Set-Cookie') != null) {
-		
-		//customRequestHeaders["Set-Cookie"] = "abc" + "; Expires=" + (new Date((new Date).getTime() + 5000)).toString()
-		customRequestHeaders["Set-Cookie"] = "TS01ed3f75="+ "; " + "Expires=" + (new Date((new Date).getTime())).toString() + "; Path=/; Secure"
-		//customRequestHeaders["Set-Cookie"] = "TS01ed3f75="+ "; Path=/; Secure"
+	constructor (ticker, uri, firstStamp, log) {
+		this.ticker = ticker
+		this.uri = uri
+		this.freshestTimestamp = firstStamp
+		this.log = log
+
+		console.log("The corresponding URI is " + this.uri + ".\n")	
+		log? logger = new QuoteLogger() : null		
 	}
-	else {
-		//customRequestHeaders["Set-Cookie"] = null
-		//customRequestHeaders["Set-Cookie"] = "TS01ed3f75="+ "; Path=/; Secure"
-	}*/
+	
+	static async build (reqResource="ca", log=false) {
+		try {
+			let result = new QuoteHarvester(reqResource, baseURI + await constructURI(reqResource), 0, log)
+			let firstStamp
+			while (true) {
+				let r = await result.quote(true)
+				if (r !== 1 && Math.abs(Date.parse(r[0].generatedTimestamp) - Date.parse(r[1].get('date')).toString()) < 9000) {
+					firstStamp = Date.parse(r[0].generatedTimestamp)
+					break
+				}
+			}
+			return result
+		}
+		catch (error) {
+			console.log(error)
+			throw "...unable to instantiate a QuoteHarvester for " + reqResource + ".\n"
+		}		
+	}
+
+	quote = async (init=false) => {
+		
+		while (true) {
+		
+			this.log? this.logger.reqInit() : null
+
+			let responseHeaders
+
+			// Make API request	
+			// use spoofParams() to give fake parameters to URI, increasing likelihood of getting a correct response
+			let r = await fetch(spoofParams(this.uri), fetchOptions).then(function(res) {
+				responseHeaders = res.headers;
+				return res.json()
+			})
+
+			this.log? this.logger.respInit(r, responseHeaders) : null
+
+			let newTimestamp = Date.parse(r.generatedTimestamp)
+			if (newTimestamp <= this.freshestTimestamp) continue	// ignore erroneous results from the API, which are frequent
+			else this.freshestTimestamp = newTimestamp
+
+			this.log? this.logger.fin(r) : null
+
+			if (init) return [r, responseHeaders]
+			else return r
+		}
+	}	
 }
 
 module.exports = {
 
-	quote,
-	initialize
+	QuoteHarvester
 }
