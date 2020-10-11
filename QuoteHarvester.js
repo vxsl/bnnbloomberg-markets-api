@@ -8,6 +8,7 @@ class QuoteHarvester {
 		this.uri = uri
 		this.freshestTimestamp = firstStamp
 		this.log = log
+		this.invalidResponseCount = 0
 
 		console.log("The corresponding URI is " + this.uri + ".\n")	
 		log? logger = new QuoteLogger() : null		
@@ -44,8 +45,21 @@ class QuoteHarvester {
 			// use spoofParams() to give fake parameters to URI, increasing likelihood of getting a correct response
 			let r = await fetch(QuoteHarvester.spoofParams(this.uri), fetchOptions).then(function(res) {
 				responseHeaders = res.headers;
-				return res.json()
+				try {
+					return res.json()
+				}
+				catch (error) {	
+					console.log(error)
+					return 1	// see below block
+				}
 			})
+			// handle invalid JSON response. Happens very occasionally, but best not to have the whole program crash if it happens once or twice.
+			// If it happens more than 5 times, something is probably wrong, so at this point the program should stop.
+			// At the time of writing this I have never seen that happen, but better safe than sorry.
+			if (r == 1) { 
+				if (++invalidResponseCount > 5) throw "The server appears to be unreliable. Halting execution."
+				else continue 
+			}	
 
 			this.log? this.logger.respInit(r, responseHeaders) : null
 
@@ -82,13 +96,22 @@ class QuoteHarvester {
 					throw "\nSorry, " + reqResourceFriendly + " is not a valid resource name."
 				}
 				else {
-					console.log("\nSelected option is an individual quote for \'" + reqResourceFriendly + "\'.")
+					console.log("\nTrying to obtain an individual quote for \'" + reqResourceFriendly + "\'.")
 					result = types.stockChart + reqResourceFriendly	
-					await fetch(baseURI + result, fetchOptions).then(res => res.json()).then(json => {
-						if (json.statusCode != 200) {						
-							throw "\nSorry, that query was rejected by the API with error code " + json.statusCode + "."
-						}
-					})
+					let invalidTestResponseCount = 0
+					let response
+					while (invalidTestResponseCount < 5) {
+						response = await fetch(baseURI + result, fetchOptions).then(res => res.json()).catch(error => {
+								console.log(error)
+								invalidTestResponseCount++
+								return 1	// invalid JSON response (happens occasionally on server error)
+							})
+						if (response != 1) break	// ... if == 1 try again, if != 1 the test query was successful
+						else if (invalidTestResponseCount == 4) throw "Sorry, the API is behaving unreliably."		
+					}
+					if (response.statusCode != 200) {						
+						throw "\nSorry, that query was rejected by the API with error code " + response.statusCode + "."
+					}
 				}
 		}
 		return result

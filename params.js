@@ -41,7 +41,7 @@ var requestHeaders = new Headers({
 	"Sec-Fetch-Site": "cross-site",
 	"Sec-Fetch-Mode": "cors",
 	"Sec-Fetch-Dest": "empty",
-	"Referer": "https://www.bnnbloomberg.ca/",
+	"Referer": "https://www.bnnbloomberg.ca/",  // this is probably the only essential header for the request to go through
 	"Accept-Encoding": "gzip, deflate, br",
 	"Accept-Language": "en-US,en;q=0.9,fr-CA;q=0.8,fr-FR;q=0.7,fr;q=0.6"
 })
