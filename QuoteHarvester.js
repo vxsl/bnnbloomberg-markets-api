@@ -3,6 +3,7 @@ const { fetch, fetchOptions, baseURI, resources, types } = require('./params.js'
 
 class QuoteHarvester {		
 
+
 	constructor (ticker, uri, firstStamp, log) {
 		this.ticker = ticker
 		this.uri = uri
@@ -11,7 +12,7 @@ class QuoteHarvester {
 		this.invalidResponseCount = 0
 
 		console.log("The corresponding URI is " + this.uri + ".\n")	
-		log? logger = new QuoteLogger() : null		
+		log? this.logger = new QuoteLogger() : null		
 	}
 	
 	static async build (reqResource="ca", log=false) {
@@ -36,7 +37,6 @@ class QuoteHarvester {
 	async quote (init=false) {
 		
 		while (true) {
-		
 			this.log? this.logger.reqInit() : null
 
 			let responseHeaders
