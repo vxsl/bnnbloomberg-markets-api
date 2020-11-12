@@ -79,12 +79,9 @@ class QuoteHarvester {
 		let result
 		switch (reqResourceFriendly) {
 			case "us":
-				console.log("\nSelected option is a summary of the US market (NASDAQ, S&P500, and DOW 30).")
+				console.log("\nSelected option is a summary of the NASDAQ (Unfortunately NYSE data is not available from Bloomberg's API).")
 				result = types.stockList
 				result += resources.us.nasdaq
-				/* for (let c in resources.us.dow30) {
-					result += resources.us.dow30[c] + ","
-				} */
 				console.log(result)
 				break
 			case "ca":
