@@ -101,7 +101,7 @@ class QuoteHarvester {
 					let invalidTestResponseCount = 0
 					let response
 					while (invalidTestResponseCount < 5) {
-						response = await fetch(baseURI + result).then(res => res.json()).catch(error => {
+						response = await fetch(baseURI + result, fetchOptions).then(res => res.json()).catch(error => {
 								console.log(error)
 								invalidTestResponseCount++
 								return 1	// invalid JSON response (happens occasionally on server error)
