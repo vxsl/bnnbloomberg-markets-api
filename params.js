@@ -1,7 +1,7 @@
 const fetch = require('node-fetch')
 const Headers = fetch.Headers;
 
-const baseURI = 'https://kylegrimsrudma.nz:8080/' + 'https://data.bnn.ca/dispenser/hydra/dapi/'
+const baseURI = 'https://data.bnn.ca/dispenser/hydra/dapi/'
 
 const types = {    
     "stockList":"stockList?s=",     // list of current quotes for individual stocks
@@ -30,6 +30,28 @@ const resources = {
     }
 }
 
+var requestHeaders = new Headers({
+	"Host": "data.bnn.ca",
+	"Connection": "keep-alive",
+	"Pragma": "no-cache",
+	"Cache-Control": "no-cache",
+	"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36",
+	"Accept": "*/*",
+	"Origin": "https://www.bnnbloomberg.ca",
+	"Sec-Fetch-Site": "cross-site",
+	"Sec-Fetch-Mode": "cors",
+	"Sec-Fetch-Dest": "empty",
+	"Referer": "https://www.bnnbloomberg.ca/",  // this is probably the only essential header for the request to go through
+	"Accept-Encoding": "gzip, deflate, br",
+	"Accept-Language": "en-US,en;q=0.9,fr-CA;q=0.8,fr-FR;q=0.7,fr;q=0.6"
+})
+
+const fetchOptions = {
+
+	method: 'GET', 
+	headers: requestHeaders
+}
+
 module.exports = {
-    fetch, baseURI, resources, types
+    fetch, baseURI, resources, types, fetchOptions
 }

@@ -1,16 +1,16 @@
+const { corsProxy } = require('./config.js')
 const { QuoteLogger } = require('./QuoteLogger.js')
-const { fetch, baseURI, resources, types } = require('./params.js')
+const { fetch, baseURI, resources, types, fetchOptions } = require('./params.js')
 
 class QuoteHarvester {		 
 
 	constructor (ticker, uri, firstStamp, log) {
 		
-		this.ticker = ticker		
-		this.uri = uri
+		this.ticker = ticker				
+		this.uri = corsProxy + uri	// corsProxy is empty by default, check config.js
 		this.freshestTimestamp = firstStamp
 		this.log = log
 		this.invalidResponseCount = 0
-
 		console.log("The corresponding URI is " + this.uri + ".\n")	
 		log? this.logger = new QuoteLogger() : null		
 	}
@@ -43,7 +43,7 @@ class QuoteHarvester {
 
 			// Make API request	
 			// use spoofParams() to give fake parameters to URI, increasing likelihood of getting a correct response
-			let r = await fetch(QuoteHarvester.spoofParams(this.uri)).then(function(res) {
+			let r = await fetch(QuoteHarvester.spoofParams(this.uri), fetchOptions).then(function(res) {
 				responseHeaders = res.headers;
 				try {
 					return res.json()
@@ -81,10 +81,10 @@ class QuoteHarvester {
 			case "us":
 				console.log("\nSelected option is a summary of the US market (NASDAQ, S&P500, and DOW 30).")
 				result = types.stockList
-				result += resources.us.nasdaq + "," + resources.us.sp500 + ","
-				for (let c in resources.us.dow30) {
-					result += c
-				}
+				result += resources.us.nasdaq
+				/* for (let c in resources.us.dow30) {
+					result += resources.us.dow30[c] + ","
+				} */
 				console.log(result)
 				break
 			case "ca":
