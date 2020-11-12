@@ -1,11 +1,11 @@
 const { QuoteLogger } = require('./QuoteLogger.js')
-const { fetch, fetchOptions, baseURI, resources, types } = require('./params.js')
+const { fetch, baseURI, resources, types } = require('./params.js')
 
-class QuoteHarvester {		
-
+class QuoteHarvester {		 
 
 	constructor (ticker, uri, firstStamp, log) {
-		this.ticker = ticker
+		
+		this.ticker = ticker		
 		this.uri = uri
 		this.freshestTimestamp = firstStamp
 		this.log = log
@@ -43,7 +43,7 @@ class QuoteHarvester {
 
 			// Make API request	
 			// use spoofParams() to give fake parameters to URI, increasing likelihood of getting a correct response
-			let r = await fetch(QuoteHarvester.spoofParams(this.uri), fetchOptions).then(function(res) {
+			let r = await fetch(QuoteHarvester.spoofParams(this.uri)).then(function(res) {
 				responseHeaders = res.headers;
 				try {
 					return res.json()
@@ -101,7 +101,7 @@ class QuoteHarvester {
 					let invalidTestResponseCount = 0
 					let response
 					while (invalidTestResponseCount < 5) {
-						response = await fetch(baseURI + result, fetchOptions).then(res => res.json()).catch(error => {
+						response = await fetch(baseURI + result).then(res => res.json()).catch(error => {
 								console.log(error)
 								invalidTestResponseCount++
 								return 1	// invalid JSON response (happens occasionally on server error)
