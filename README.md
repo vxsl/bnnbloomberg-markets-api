@@ -1,9 +1,12 @@
 # bnnbloomberg-markets-scraper
 
-A small helper tool to provide close-to-realtime market data from BNN Bloomberg's unauthenticated API.
+A small helper tool to provide close-to-realtime market data from BNN Bloomberg's unauthenticated API 
 
 By default it provides data on all stocks listed [here](https://www.bnnbloomberg.ca/markets), but you can change the URI to data about other exchanges, individual securities, and/or do some digging to find out what else the API has in store...
 
+## Notes
+
+When using this tool to make client-side queries from the browser, ```data.bnn.ca``` will reject all queries based on CORS policy. To resolve this, you can run a [CORS-Anywhere server](https://github.com/Rob--W/cors-anywhere) and prefix your URIs with the server's URL. See ```config.js```. If you are planning to use this tool server-side or locally, `corsProxy` can remain empty without issue.
 
 ## Usage
 
@@ -11,7 +14,7 @@ By default it provides data on all stocks listed [here](https://www.bnnbloomberg
 
   Alternatively, pass ```"us"``` or ```"ca"``` for a summary of the NYSE or TSX, respectively.
 
-* Call ```quote()``` to retrieve the most current data. The response's ```data``` value will look like this:
+* Call ```quote()``` to retrieve the most current data. The response will look something like this:
 
   ```
   statusCode: 200,
