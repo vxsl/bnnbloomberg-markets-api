@@ -57,7 +57,7 @@ class QuoteHarvester {
 			// If it happens more than 5 times, something is probably wrong, so at this point the program should stop.
 			// At the time of writing this I have never seen that happen, but better safe than sorry.
 			if (r == 1) { 
-				if (++invalidResponseCount > 5) throw "The server appears to be unreliable. Halting execution."
+				if (++this.invalidResponseCount > 5) throw "The server appears to be unreliable. Halting execution."
 				else continue 
 			}	
 
