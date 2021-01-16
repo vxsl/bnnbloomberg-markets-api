@@ -1,6 +1,6 @@
 # bnnbloomberg-markets-api
 
-A small helper tool to provide close-to-realtime market data from BNN Bloomberg's unauthenticated API 
+A JS wrapper for retrieval of close-to-realtime market data from BNN Bloomberg's unauthenticated API.
 
 By default it provides data on all stocks listed [here](https://www.bnnbloomberg.ca/markets), but you can change the URI to data about other exchanges, individual securities, and/or do some digging to find out what else the API has in store...
 
