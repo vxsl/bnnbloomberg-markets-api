@@ -1,4 +1,4 @@
-# bnnbloomberg-markets-scraper
+# bnnbloomberg-markets-api
 
 A small helper tool to provide close-to-realtime market data from BNN Bloomberg's unauthenticated API 
 
