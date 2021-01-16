@@ -45,12 +45,12 @@ When using this tool to make client-side queries from the browser, ```data.bnn.c
 ### Example 
 
 ```
-git clone https://github.com/vxsl/bnnbloomberg-markets-scraper.git
-cd bnnbloomberg-markets-scraper; npm i; cd ..
+git clone https://github.com/vxsl/bnnbloomberg-markets-api.git
+cd bnnbloomberg-markets-api; npm i; cd ..
 ```
 
 ```javascript
-const { QuoteHarvester } = require("./bnnbloomberg-markets-scraper")
+const { QuoteHarvester } = require("./bnnbloomberg-markets-api")
 
 !async function () {    
 
