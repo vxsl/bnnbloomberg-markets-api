@@ -19,7 +19,7 @@ class QuoteHarvester {
 		try {
 			let result = new QuoteHarvester(reqResource, baseURI + await QuoteHarvester.constructURI(reqResource), 0, log)
 			let firstStamp
-			while (true) {
+			for (;;) {
 				let r = await result.quote(true)
 				if (r !== 1 && Math.abs(Date.parse(r[0].generatedTimestamp) - Date.parse(r[1].get('date')).toString()) < 9000) {
 					firstStamp = Date.parse(r[0].generatedTimestamp)
@@ -36,7 +36,7 @@ class QuoteHarvester {
 
 	async quote (init=false) {
 		
-		while (true) {
+		for (;;) {
 			this.log? this.logger.reqInit() : null
 
 			let responseHeaders
@@ -89,11 +89,11 @@ class QuoteHarvester {
 				result = types.stockList + resources.ca.composite + "," + resources.ca.midcap + "," + resources.ca.smallcap
 				break
 			default:
-				if (new RegExp(`$[a-z, A-Z]+\:[a-z, A-Z]+^`).test(reqResourceFriendly)) {	
+				if (new RegExp(`$[a-z, A-Z]+:[a-z, A-Z]+^`).test(reqResourceFriendly)) {	
 					throw "\nSorry, " + reqResourceFriendly + " is not a valid resource name."
 				}
 				else {
-					console.log("\nTrying to obtain an individual quote for \'" + reqResourceFriendly + "\'.")
+					console.log("\nTrying to obtain an individual quote for '" + reqResourceFriendly + "'.")
 					result = types.stockChart + reqResourceFriendly	
 					let invalidTestResponseCount = 0
 					let response
@@ -120,7 +120,7 @@ class QuoteHarvester {
 			return String.fromCharCode(97+Math.floor(Math.random() * 26))
 		}
 		let fakeParam = randomLetter()
-		while (true) {
+		for (;;) {
 			if (fakeParam != 's') break
 			else { fakeParam = randomLetter() }
 		}
