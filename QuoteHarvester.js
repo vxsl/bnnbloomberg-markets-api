@@ -1,23 +1,23 @@
 const { corsProxy } = require('./config.js')
-const { QuoteLogger } = require('./QuoteLogger.js')
+const { DebugLogger } = require('./DebugLogger.js')
 const { fetch, baseURI, resources, types, fetchOptions } = require('./params.js')
 
 class QuoteHarvester {		 
 
-	constructor (ticker, uri, firstStamp, log) {
+	constructor (ticker, uri, firstStamp, debug) {
 		
 		this.ticker = ticker				
 		this.uri = corsProxy + uri	// corsProxy is empty by default, check config.js
 		this.freshestTimestamp = firstStamp
-		this.log = log
+		this.debug = debug
 		this.invalidResponseCount = 0
 		console.log("The corresponding URI is " + this.uri + ".\n")	
-		log? this.logger = new QuoteLogger() : null		
+		debug? this.debugLogger = new DebugLogger() : null		
 	}
 	
-	static async build (reqResource="ca", log=false) {
+	static async build (reqResource="ca", debug=false) {
 		try {
-			let result = new QuoteHarvester(reqResource, baseURI + await QuoteHarvester.constructURI(reqResource), 0, log)
+			let result = new QuoteHarvester(reqResource, baseURI + await QuoteHarvester.constructURI(reqResource), 0, debug)
 			let firstStamp
 			for (;;) {
 				let r = await result.quote(true)
@@ -37,7 +37,7 @@ class QuoteHarvester {
 	async quote (init=false) {
 		
 		for (;;) {
-			this.log? this.logger.reqInit() : null
+			this.debug? this.debugLogger.reqInit() : null
 
 			let responseHeaders
 
@@ -61,13 +61,13 @@ class QuoteHarvester {
 				else continue 
 			}	
 
-			this.log? this.logger.respInit(r, responseHeaders) : null
+			this.debug? this.debugLogger.respInit(r, responseHeaders) : null
 
 			let newTimestamp = Date.parse(r.generatedTimestamp)
 			if (newTimestamp <= this.freshestTimestamp) continue	// ignore erroneous results from the API, which are frequent
 			else this.freshestTimestamp = newTimestamp
 
-			this.log? this.logger.fin(r) : null
+			this.debug? this.debugLogger.fin(r) : null
 
 			if (init) return [r, responseHeaders]
 			else return r

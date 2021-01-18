@@ -1,4 +1,4 @@
-class QuoteLogger {
+class DebugLogger {
     
     reqInit = async () => {
         this.requestTime = (new Date).getTime()	
@@ -39,5 +39,5 @@ class QuoteLogger {
 
 module.exports = {
 
-    QuoteLogger
+    DebugLogger
 }
